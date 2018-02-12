@@ -11,7 +11,7 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 			foreach(var assembly in assemblies) {
 				var classTypes = assembly
 					.GetTypes()
-					.Where(x => x.IsClass);
+					.Where(x => x.IsClass && !x.IsAbstract);
 				foreach(var classType in classTypes) {
 					var implementedInterfaceTypes = classType.GetInterfaces();
 					foreach (var implementedInterfaceType in implementedInterfaceTypes)
