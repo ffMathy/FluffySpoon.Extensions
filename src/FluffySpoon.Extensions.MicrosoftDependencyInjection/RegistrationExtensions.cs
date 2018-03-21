@@ -7,7 +7,7 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 {
     public static class RegistrationExtensions
     {
-		public static void AddAssemblyTypesAsImplementedInterfaces(this ServiceCollection serviceCollection, params Assembly[] assemblies) {
+		public static void AddAssemblyTypesAsImplementedInterfaces(this IServiceCollection serviceCollection, params Assembly[] assemblies) {
 			foreach(var assembly in assemblies) {
 				var classTypes = assembly
 					.GetTypes()
