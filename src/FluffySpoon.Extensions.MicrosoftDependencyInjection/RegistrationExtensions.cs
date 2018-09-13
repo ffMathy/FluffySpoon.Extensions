@@ -16,7 +16,7 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 					var implementedInterfaceTypes = classType.GetInterfaces();
 					foreach (var implementedInterfaceType in implementedInterfaceTypes)
 					{
-						serviceCollection.AddTransient(implementedInterfaceType, classType);
+						serviceCollection.AddScoped(implementedInterfaceType, classType);
 					}
 				}
 			}
