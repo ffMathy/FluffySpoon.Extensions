@@ -35,7 +35,8 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 			Type type)
 		{
 			return settings.NamespaceSearchString == null || 
-				type.Namespace?.Contains(settings.NamespaceSearchString);
+				(type.Namespace != null && 
+				type.Namespace.Contains(settings.NamespaceSearchString));
 		}
 
 		public static void AddAssemblyTypesAsImplementedInterfaces(
