@@ -23,8 +23,16 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 						.GetInterfaces()
 						.Where(x => DoesTypeMatchFilters(settings, x)); ;
 					foreach (var implementedInterfaceType in implementedInterfaceTypes)
-					{
-						serviceCollection.AddScoped(implementedInterfaceType, classType);
+                    {
+                        var implementationType = classType;
+                        if (implementationType.IsGenericType)
+                            implementationType = implementationType.GetGenericTypeDefinition();
+
+                        var interfaceType = implementedInterfaceType;
+                        if (implementationType.IsGenericType && interfaceType.IsGenericType)
+                            interfaceType = interfaceType.GetGenericTypeDefinition();
+
+						serviceCollection.AddScoped(interfaceType, implementationType);
 					}
 				}
 			}
@@ -34,9 +42,9 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 			RegistrationSettings settings, 
 			Type type)
 		{
-			return settings.NamespaceSearchString == null || 
+			return settings.Filter == null || 
 				(type.Namespace != null && 
-				type.Namespace.Contains(settings.NamespaceSearchString));
+				settings.Filter(type));
 		}
 
 		public static void AddAssemblyTypesAsImplementedInterfaces(

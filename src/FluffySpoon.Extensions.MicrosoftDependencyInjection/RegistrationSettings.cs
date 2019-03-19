@@ -7,7 +7,7 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 {
 	public class RegistrationSettings
 	{
-		public string NamespaceSearchString { get; set; }
+		public Func<Type, bool> Filter { get; set; }
 
 		public IEnumerable<Assembly> Assemblies { get; set; }
 
