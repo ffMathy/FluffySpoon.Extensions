@@ -20,6 +20,16 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection.Tests
         }
     }
 
+    interface INonGeneric
+    {
+
+    }
+
+    class GenericFromNonGeneric<T> : INonGeneric
+    {
+
+    }
+
     class Generic<T> : IGeneric<T>
     {
 

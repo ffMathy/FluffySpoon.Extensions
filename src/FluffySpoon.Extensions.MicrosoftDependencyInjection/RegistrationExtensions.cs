@@ -25,14 +25,20 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 					foreach (var implementedInterfaceType in implementedInterfaceTypes)
                     {
                         var implementationType = classType;
+                        var interfaceType = implementedInterfaceType;
+
+                        if (!interfaceType.IsGenericType && classType.IsGenericType)
+                            continue;
+
                         if (implementationType.IsGenericType)
                             implementationType = implementationType.GetGenericTypeDefinition();
 
-                        var interfaceType = implementedInterfaceType;
                         if (implementationType.IsGenericType && interfaceType.IsGenericType)
                             interfaceType = interfaceType.GetGenericTypeDefinition();
 
-						serviceCollection.AddScoped(interfaceType, implementationType);
+						serviceCollection.AddScoped(
+                            interfaceType, 
+                            implementationType);
 					}
 				}
 			}

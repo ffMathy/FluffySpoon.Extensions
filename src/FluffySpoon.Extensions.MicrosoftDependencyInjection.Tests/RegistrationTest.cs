@@ -17,5 +17,17 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection.Tests
             var instance = container.GetRequiredService<IGeneric<string>>();
             Assert.IsInstanceOfType(instance, typeof(Generic<string>));
         }
+
+        [TestMethod]
+        public void CanRegisterGenericClassWithNoGenericInterface()
+        {
+            var services = new ServiceCollection();
+            services.AddAssemblyTypesAsImplementedInterfaces(typeof(RegistrationTest).Assembly);
+
+            var container = services.BuildServiceProvider();
+
+            var instance = container.GetService<INonGeneric>();
+            Assert.IsNull(instance);
+        }
     }
 }
