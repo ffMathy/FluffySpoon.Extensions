@@ -19,26 +19,30 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 					.Where(x => DoesTypeMatchFilters(settings, x));
 				foreach (var classType in classTypes)
 				{
-					var implementedInterfaceTypes = classType
-						.GetInterfaces()
-						.Where(x => DoesTypeMatchFilters(settings, x)); ;
-					foreach (var implementedInterfaceType in implementedInterfaceTypes)
-                    {
-                        var implementationType = classType;
-                        var interfaceType = implementedInterfaceType;
+					try {
+						var implementedInterfaceTypes = classType
+							.GetInterfaces()
+							.Where(x => DoesTypeMatchFilters(settings, x)); ;
+						foreach (var implementedInterfaceType in implementedInterfaceTypes)
+						{
+							var implementationType = classType;
+							var interfaceType = implementedInterfaceType;
 
-                        if (!interfaceType.IsGenericType && classType.IsGenericType)
-                            continue;
+							if (!interfaceType.IsGenericType && classType.IsGenericType)
+							    continue;
 
-                        if (implementationType.IsGenericType)
-                            implementationType = implementationType.GetGenericTypeDefinition();
+							if (implementationType.IsGenericType)
+							    implementationType = implementationType.GetGenericTypeDefinition();
 
-                        if (implementationType.IsGenericType && interfaceType.IsGenericType)
-                            interfaceType = interfaceType.GetGenericTypeDefinition();
+							if (implementationType.IsGenericType && interfaceType.IsGenericType)
+							    interfaceType = interfaceType.GetGenericTypeDefinition();
 
-						serviceCollection.AddScoped(
-                            interfaceType, 
-                            implementationType);
+							serviceCollection.AddScoped(
+							    interfaceType, 
+							    implementationType);
+						}
+					} catch(Exception ex) {
+						throw new Exception("Could not load type " + classType.FullName, ex);
 					}
 				}
 			}
