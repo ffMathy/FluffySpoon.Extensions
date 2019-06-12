@@ -6,10 +6,56 @@ using System.Reflection;
 namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 {
 	public static class RegistrationExtensions
-	{
-		public static void AddAssemblyTypesAsImplementedInterfaces(
-			this IServiceCollection serviceCollection, 
-			RegistrationSettings settings)
+    {
+        private delegate ServiceDescriptor GetServiceDescriptorDelegate(
+            Type interfaceType, 
+            Type implementationType);
+
+        public static void AddAssemblyTypesAsImplementedInterfaces(
+            this IServiceCollection serviceCollection,
+            RegistrationSettings settings)
+        {
+            AddAssemblyTypesAsImplementedInterfaces(
+                serviceCollection,
+                settings,
+                (interfaceType, implementationType) => 
+                    new ServiceDescriptor(
+                        interfaceType, 
+                        implementationType, 
+                        settings.Scope ?? ServiceLifetime.Scoped));
+        }
+
+        public static void AddAssemblyTypesAsFactories(
+            this IServiceCollection serviceCollection,
+            RegistrationSettings settings)
+        {
+            AddAssemblyTypesAsImplementedInterfaces(
+                serviceCollection,
+                settings,
+                (interfaceType, implementationType) => {
+                    var interfaceFuncType = typeof(Func<>).MakeGenericType(interfaceType);
+                    var serviceProviderExtensionsType = typeof(ServiceProviderServiceExtensions);
+                    var serviceProviderExtensionsGetServiceMethod = serviceProviderExtensionsType
+                        .GetMethods()
+                        .Single(x =>
+                            x.Name == nameof(ServiceProviderServiceExtensions.GetRequiredService) &&
+                            x.IsGenericMethod)
+                        .MakeGenericMethod(interfaceType);
+
+                    return new ServiceDescriptor(
+                        interfaceFuncType,
+                        provider => Delegate.CreateDelegate(
+                            interfaceFuncType,
+                            provider,
+                            serviceProviderExtensionsGetServiceMethod),
+                        settings.Scope ?? ServiceLifetime.Singleton);
+                });
+        }
+
+        private static void AddAssemblyTypesAsImplementedInterfaces(
+			IServiceCollection serviceCollection, 
+			RegistrationSettings settings,
+            GetServiceDescriptorDelegate getServiceDescriptor)
 		{
 			foreach (var assembly in settings.Assemblies)
 			{
@@ -37,9 +83,10 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 							if (implementationType.IsGenericType && interfaceType.IsGenericType)
 							    interfaceType = interfaceType.GetGenericTypeDefinition();
 
-							serviceCollection.AddScoped(
-							    interfaceType, 
-							    implementationType);
+                            var descriptor = getServiceDescriptor(
+                                interfaceType, 
+                                implementationType);
+                            serviceCollection.Add(descriptor);
 						}
 					} catch(Exception ex) {
 						throw new Exception("Could not load type " + classType.FullName, ex);
@@ -55,15 +102,6 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 			return settings.Filter == null || 
 				(type.Namespace != null && 
 				settings.Filter(type));
-		}
-
-		public static void AddAssemblyTypesAsImplementedInterfaces(
-			this IServiceCollection serviceCollection, 
-			params Assembly[] assemblies)
-		{
-			AddAssemblyTypesAsImplementedInterfaces(serviceCollection, new RegistrationSettings() {
-				Assemblies = assemblies
-			});
 		}
 	}
 }

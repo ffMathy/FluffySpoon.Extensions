@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -9,11 +10,14 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 	{
 		public Func<Type, bool> Filter { get; set; }
 
-		public IEnumerable<Assembly> Assemblies { get; set; }
+        public ServiceLifetime? Scope { get; set; }
+
+        public IEnumerable<Assembly> Assemblies { get; set; }
 
 		public RegistrationSettings()
 		{
 			Assemblies = new List<Assembly>();
-		}
+            Scope = ServiceLifetime.Scoped;
+        }
 	}
 }

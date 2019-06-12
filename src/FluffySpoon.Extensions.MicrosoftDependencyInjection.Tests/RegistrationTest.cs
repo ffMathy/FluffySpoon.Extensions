@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace FluffySpoon.Extensions.MicrosoftDependencyInjection.Tests
 {
@@ -10,7 +11,11 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection.Tests
         public void CanRegisterGenericTypes()
         {
             var services = new ServiceCollection();
-            services.AddAssemblyTypesAsImplementedInterfaces(typeof(RegistrationTest).Assembly);
+            services.AddAssemblyTypesAsImplementedInterfaces(new RegistrationSettings() {
+                Assemblies = new [] {
+                    typeof(RegistrationTest).Assembly
+                }
+            });
 
             var container = services.BuildServiceProvider();
 
@@ -22,12 +27,37 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection.Tests
         public void CanRegisterGenericClassWithNoGenericInterface()
         {
             var services = new ServiceCollection();
-            services.AddAssemblyTypesAsImplementedInterfaces(typeof(RegistrationTest).Assembly);
+            services.AddAssemblyTypesAsImplementedInterfaces(new RegistrationSettings()
+            {
+                Assemblies = new[] {
+                    typeof(RegistrationTest).Assembly
+                }
+            });
 
             var container = services.BuildServiceProvider();
 
             var instance = container.GetService<INonGeneric>();
             Assert.IsNull(instance);
+        }
+
+        [TestMethod]
+        public void CanRegisterFactories()
+        {
+            var services = new ServiceCollection();
+
+            var registrationSettings = new RegistrationSettings()
+            {
+                Assemblies = new[] {
+                    typeof(RegistrationTest).Assembly
+                }
+            };
+            services.AddAssemblyTypesAsImplementedInterfaces(registrationSettings);
+            services.AddAssemblyTypesAsFactories(registrationSettings);
+
+            var container = services.BuildServiceProvider();
+
+            var instance = container.GetService<Func<IGenericWrapper>>()();
+            Assert.IsNotNull(instance);
         }
     }
 }
