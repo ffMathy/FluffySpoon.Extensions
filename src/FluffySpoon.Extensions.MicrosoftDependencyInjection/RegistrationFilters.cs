@@ -15,5 +15,15 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
         {
             return t => t.Namespace == @namespace;
         }
+
+        public static Func<Type, bool> TypesWithNamespaceOf(Type type)
+        {
+            return TypesWithNamespace(type.Namespace);
+        }
+
+        public static Func<Type, bool> TypesWithinNamespaceOf(Type type)
+        {
+            return TypesWithinNamespace(type.Namespace);
+        }
     }
 }
