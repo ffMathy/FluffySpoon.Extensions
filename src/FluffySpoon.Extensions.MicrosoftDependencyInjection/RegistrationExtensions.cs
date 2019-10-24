@@ -50,7 +50,11 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
             ScanAssemblyTypes(
                 serviceCollection,
                 settings,
-                (interfaceType, implementationType) => {
+                (interfaceType, implementationType) =>
+                {
+                    if (interfaceType == null)
+                        return null;
+
                     var interfaceFuncType = typeof(Func<>).MakeGenericType(interfaceType);
                     var serviceProviderExtensionsType = typeof(ServiceProviderServiceExtensions);
                     var serviceProviderExtensionsGetServiceMethod = serviceProviderExtensionsType
