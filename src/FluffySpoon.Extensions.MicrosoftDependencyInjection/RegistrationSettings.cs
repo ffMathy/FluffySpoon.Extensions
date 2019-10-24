@@ -8,7 +8,8 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 {
 	public class RegistrationSettings
 	{
-		public Func<Type, bool> Filter { get; set; }
+		public Func<Type, bool> ImplementationFilter { get; set; }
+        public Func<Type, bool> InterfaceFilter { get; set; }
 
         public ServiceLifetime? Scope { get; set; }
 

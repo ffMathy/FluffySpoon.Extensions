@@ -98,10 +98,14 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 		private static bool DoesTypeMatchFilters(
 			RegistrationSettings settings, 
 			Type type)
-		{
-			return settings.Filter == null || 
-				(type.Namespace != null && 
-				settings.Filter(type));
+        {
+            var filterToUse = type.IsInterface ? 
+                settings.InterfaceFilter : 
+                settings.ImplementationFilter;
+
+			return filterToUse == null || 
+				(type.Namespace != null &&
+                 filterToUse(type));
 		}
 	}
 }
