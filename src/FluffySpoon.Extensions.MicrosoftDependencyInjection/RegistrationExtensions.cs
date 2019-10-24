@@ -15,21 +15,39 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
             this IServiceCollection serviceCollection,
             RegistrationSettings settings)
         {
-            AddAssemblyTypesAsImplementedInterfaces(
+            ScanAssemblyTypes(
                 serviceCollection,
                 settings,
                 (interfaceType, implementationType) => 
-                    new ServiceDescriptor(
-                        interfaceType, 
-                        implementationType, 
-                        settings.Scope ?? ServiceLifetime.Scoped));
+                    interfaceType != null ? 
+                        new ServiceDescriptor(
+                            interfaceType, 
+                            implementationType, 
+                            settings.Scope ?? ServiceLifetime.Scoped) :
+                        null);
+        }
+
+        public static void AddAssemblyTypesAsSelf(
+            this IServiceCollection serviceCollection,
+            RegistrationSettings settings)
+        {
+            ScanAssemblyTypes(
+                serviceCollection,
+                settings,
+                (interfaceType, implementationType) =>
+                    interfaceType == null ?
+                        new ServiceDescriptor(
+                            implementationType,
+                            implementationType,
+                            settings.Scope ?? ServiceLifetime.Scoped) :
+                        null);
         }
 
         public static void AddAssemblyTypesAsFactories(
             this IServiceCollection serviceCollection,
             RegistrationSettings settings)
         {
-            AddAssemblyTypesAsImplementedInterfaces(
+            ScanAssemblyTypes(
                 serviceCollection,
                 settings,
                 (interfaceType, implementationType) => {
@@ -52,7 +70,7 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
                 });
         }
 
-        private static void AddAssemblyTypesAsImplementedInterfaces(
+        private static void ScanAssemblyTypes(
 			IServiceCollection serviceCollection, 
 			RegistrationSettings settings,
             GetServiceDescriptorDelegate getServiceDescriptor)
@@ -64,29 +82,36 @@ namespace FluffySpoon.Extensions.MicrosoftDependencyInjection
 					.Where(x => x.IsClass && !x.IsAbstract)
 					.Where(x => DoesTypeMatchFilters(settings, x));
 				foreach (var classType in classTypes)
-				{
-					try {
-						var implementedInterfaceTypes = classType
+                {
+                    try
+                    {
+                        var implementationType = classType;
+
+                        if (implementationType.IsGenericType)
+                            implementationType = implementationType.GetGenericTypeDefinition();
+
+                        var implementationTypeDescriptor = getServiceDescriptor(null, implementationType);
+                        if (implementationTypeDescriptor != null)
+                            serviceCollection.Add(implementationTypeDescriptor);
+
+                        var implementedInterfaceTypes = classType
 							.GetInterfaces()
 							.Where(x => DoesTypeMatchFilters(settings, x)); ;
 						foreach (var implementedInterfaceType in implementedInterfaceTypes)
 						{
-							var implementationType = classType;
 							var interfaceType = implementedInterfaceType;
 
 							if (!interfaceType.IsGenericType && classType.IsGenericType)
 							    continue;
 
-							if (implementationType.IsGenericType)
-							    implementationType = implementationType.GetGenericTypeDefinition();
-
 							if (implementationType.IsGenericType && interfaceType.IsGenericType)
 							    interfaceType = interfaceType.GetGenericTypeDefinition();
 
-                            var descriptor = getServiceDescriptor(
+                            var interfaceAndImplementationTypeDescriptor = getServiceDescriptor(
                                 interfaceType, 
                                 implementationType);
-                            serviceCollection.Add(descriptor);
+                            if(interfaceAndImplementationTypeDescriptor != null)
+                                serviceCollection.Add(interfaceAndImplementationTypeDescriptor);
 						}
 					} catch(Exception ex) {
 						throw new Exception("Could not load type " + classType.FullName, ex);
